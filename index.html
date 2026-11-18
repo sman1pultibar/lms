@@ -211,6 +211,15 @@
           fallbackEl.style.display = 'block';
         }
       }, 12000);
+
+      // Registrasi Service Worker (PWA Offline & Cache Aset Lokal)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('sw.js').catch(function(err) {
+            console.log('SW registration info:', err);
+          });
+        });
+      }
     })();
   </script>
 </body>
