@@ -8,12 +8,15 @@
   <!-- Optimasi Kecepatan Koneksi & Preload Dokumen Utama Google Apps Script -->
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link rel="preconnect" href="https://drive.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="dns-prefetch" href="https://script.googleusercontent.com">
   <link rel="preload" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" as="document">
 
   <!-- Konfigurasi PWA & Mobile Fullscreen (Android & iOS) -->
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w192">
+  <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w192">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,6 +25,7 @@
   <!-- Meta OpenGraph untuk Preview Tautan di WhatsApp / Media Sosial -->
   <meta property="og:title" content="LMS SMAN 1 Pulau Tiga Barat">
   <meta property="og:description" content="Portal Pembelajaran Digital, Presensi, Tugas, dan Ujian Online SMAN 1 Pulau Tiga Barat.">
+  <meta property="og:image" content="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w512">
   <meta property="og:type" content="website">
 
   <title>LMS SMAN 1 Pulau Tiga Barat</title>
@@ -45,7 +49,7 @@
       color: #ffffff;
     }
 
-    /* Layar Loading dengan gaya Zettbos Glassmorphism */
+    /* Splash Screen / Layar Pembuka dengan Logo Sekolah */
     #loader-overlay {
       position: fixed;
       inset: 0;
@@ -64,82 +68,102 @@
       pointer-events: none;
     }
 
-    .loader-card {
-      background: rgba(21, 27, 38, 0.78);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(0, 255, 170, 0.22);
-      border-radius: 18px;
-      padding: 30px 36px;
+    .splash-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      padding: 24px;
       max-width: 90%;
-      width: 340px;
     }
 
-    .spinner {
-      width: 44px;
-      height: 44px;
-      margin: 0 auto 18px;
-      border: 3px solid rgba(0, 255, 170, 0.15);
-      border-top-color: #00ffaa;
+    .logo-wrapper {
+      position: relative;
+      width: 112px;
+      height: 112px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      animation: logoPulse 2.2s infinite ease-in-out;
+    }
+
+    /* Efek cahaya lembut di belakang logo */
+    .logo-wrapper::before {
+      content: "";
+      position: absolute;
+      inset: -8px;
       border-radius: 50%;
-      animation: spin 0.85s linear infinite;
+      background: radial-gradient(circle, rgba(0, 255, 170, 0.22) 0%, rgba(0, 255, 170, 0) 70%);
+      z-index: -1;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .school-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
     }
 
-    .loader-title {
+    @keyframes logoPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.95;
+      }
+      50% {
+        transform: scale(1.06);
+        opacity: 1;
+      }
+    }
+
+    .school-title {
       font-size: 16px;
       font-weight: 700;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.5px;
       color: #f8fafc;
-      margin-bottom: 6px;
+      margin-bottom: 14px;
     }
 
-    .loader-subtitle {
-      font-size: 13px;
-      color: #94a3b8;
-      line-height: 1.4;
-    }
-
-    /* Progress bar halus dekoratif */
+    /* Progress bar tipis minimalis di bawah logo */
     .progress-track {
-      width: 100%;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.08);
+      width: 140px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 4px;
-      margin-top: 18px;
       overflow: hidden;
     }
 
     .progress-bar {
-      width: 40%;
+      width: 45%;
       height: 100%;
       background: linear-gradient(90deg, #00ffaa, #00d4ff);
       border-radius: 4px;
-      animation: indeterminate 1.4s infinite ease-in-out;
+      animation: indeterminate 1.3s infinite ease-in-out;
     }
 
     @keyframes indeterminate {
       0% { transform: translateX(-120%); }
-      100% { transform: translateX(280%); }
+      100% { transform: translateX(260%); }
     }
 
     /* Tombol Fallback jika koneksi lambat / iframe tertahan */
     #fallback-box {
       display: none;
-      margin-top: 20px;
+      margin-top: 24px;
       padding-top: 16px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
+    .fallback-text {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+
     .btn-direct {
       display: inline-block;
-      margin-top: 10px;
-      padding: 10px 18px;
+      padding: 10px 20px;
       background-color: #00ffaa;
       color: #0b0f19;
       font-size: 13px;
@@ -162,7 +186,7 @@
       display: block;
       background-color: #0b0f19;
       opacity: 0;
-      transition: opacity 0.2s ease-out;
+      transition: opacity 0.25s ease-out;
     }
 
     #app-frame.loaded {
@@ -172,18 +196,24 @@
 </head>
 <body>
 
-  <!-- Overlay Loading saat iframe Google Apps Script sedang dimuat -->
+  <!-- Splash Screen Logo Sekolah saat aplikasi sedang dimuat -->
   <div id="loader-overlay">
-    <div class="loader-card">
-      <div class="spinner"></div>
-      <div class="loader-title">LMS SMAN 1 Pulau Tiga Barat</div>
-      <div class="loader-subtitle">Menyiapkan ruang belajar digital...</div>
+    <div class="splash-container">
+      <div class="logo-wrapper">
+        <img 
+          src="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w256" 
+          alt="Logo SMAN 1 Pulau Tiga Barat" 
+          class="school-logo"
+          onerror="this.style.display='none'"
+        >
+      </div>
+      <div class="school-title">SMAN 1 Pulau Tiga Barat</div>
       <div class="progress-track">
         <div class="progress-bar"></div>
       </div>
       
       <div id="fallback-box">
-        <div class="loader-subtitle">Koneksi membutuhkan waktu lebih lama?</div>
+        <div class="fallback-text">Koneksi membutuhkan waktu lebih lama?</div>
         <a id="direct-link" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" target="_top" class="btn-direct">
           Buka Langsung Aplikasi
         </a>
@@ -218,7 +248,7 @@
         directLinkEl.href = targetWithParams;
       }
 
-      // Fungsi membuka tabir loading seketika
+      // Fungsi membuka tabir splash screen seketika
       function revealApp() {
         if (!iframeEl.classList.contains('loaded')) {
           iframeEl.classList.add('loaded');
