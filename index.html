@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f19">
   
-  <!-- Optimasi Kecepatan Koneksi ke Server Google Apps Script -->
+  <!-- Optimasi Kecepatan Koneksi & Preload Dokumen Utama Google Apps Script -->
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+  <link rel="preload" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" as="document">
 
   <!-- Konfigurasi PWA & Mobile Fullscreen (Android & iOS) -->
   <link rel="manifest" href="manifest.json">
@@ -153,7 +154,7 @@
       box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
     }
 
-    /* Container Iframe Full-Screen dengan transisi fade-in smooth */
+    /* Container Iframe Full-Screen dengan transisi instan */
     #app-frame {
       width: 100%;
       height: 100%;
@@ -161,7 +162,7 @@
       display: block;
       background-color: #0b0f19;
       opacity: 0;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.2s ease-out;
     }
 
     #app-frame.loaded {
@@ -217,20 +218,26 @@
         directLinkEl.href = targetWithParams;
       }
 
-      // Sembunyikan layar loading dan tampilkan iframe secara smooth saat selesai dimuat
-      iframeEl.addEventListener('load', function() {
-        iframeEl.classList.add('loaded');
-        setTimeout(function() {
-          loaderEl.classList.add('hidden');
-        }, 250);
-      });
-
-      // Tampilkan opsi tombol buka langsung jika loading melebihi 8 detik
-      setTimeout(function() {
-        if (!loaderEl.classList.contains('hidden')) {
-          fallbackEl.style.display = 'block';
+      // Fungsi membuka tabir loading seketika
+      function revealApp() {
+        if (!iframeEl.classList.contains('loaded')) {
+          iframeEl.classList.add('loaded');
         }
-      }, 8000);
+        if (!loaderEl.classList.contains('hidden')) {
+          loaderEl.classList.add('hidden');
+        }
+      }
+
+      // Buka langsung tanpa jeda tambahan begitu iframe selesai merender DOM awal
+      iframeEl.addEventListener('load', revealApp);
+
+      // Fail-safe Auto-Reveal: Jika aset eksternal lambat, buka tampilan utama dalam 2.8 detik
+      setTimeout(revealApp, 2800);
+
+      // Tampilkan opsi tombol buka langsung jika koneksi benar-benar terputus (> 7 detik)
+      setTimeout(function() {
+        fallbackEl.style.display = 'block';
+      }, 7000);
     })();
   </script>
 </body>
