@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0f19">
+  <meta name="theme-color" content="#0f172a">
   
   <!-- Optimasi Kecepatan Koneksi & Preload Dokumen Utama Google Apps Script -->
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-  <link rel="preconnect" href="https://drive.google.com" crossorigin>
+  <link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+  <link rel="preload" href="https://lh3.googleusercontent.com/d/1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k" as="image">
   <link rel="preload" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" as="document">
 
   <!-- Konfigurasi PWA & Mobile Fullscreen (Android & iOS) -->
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w192">
-  <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w192">
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k">
+  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,7 +26,7 @@
   <!-- Meta OpenGraph untuk Preview Tautan di WhatsApp / Media Sosial -->
   <meta property="og:title" content="LMS SMAN 1 Pulau Tiga Barat">
   <meta property="og:description" content="Portal Pembelajaran Digital, Presensi, Tugas, dan Ujian Online SMAN 1 Pulau Tiga Barat.">
-  <meta property="og:image" content="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w512">
+  <meta property="og:image" content="https://lh3.googleusercontent.com/d/1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k">
   <meta property="og:type" content="website">
 
   <title>LMS SMAN 1 Pulau Tiga Barat</title>
@@ -44,22 +45,24 @@
       height: 100dvh;
       overflow: hidden;
       overscroll-behavior: none;
-      background-color: #0b0f19;
+      background-color: #0f172a;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #ffffff;
+      color: #f8fafc;
     }
 
-    /* Layar Pembuka Statis (Logo & Teks Diam) */
+    /* Layar Pembuka Statis: Menutup penuh hingga portal siap 100% */
     #loader-overlay {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at center, #151b26 0%, #0b0f19 100%);
+      background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 9999;
-      transition: opacity 0.35s ease, visibility 0.35s ease;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
     }
 
     #loader-overlay.hidden {
@@ -79,9 +82,8 @@
     }
 
     .logo-wrapper {
-      position: relative;
-      width: 112px;
-      height: 112px;
+      width: 120px;
+      height: 120px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -92,76 +94,75 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45));
     }
 
     .school-title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: 0.4px;
       color: #f8fafc;
+      line-height: 1.4;
     }
 
-    /* Tombol Fallback jika koneksi lambat / iframe tertahan */
+    /* Tombol Fallback hanya muncul jika jaringan bermasalah (> 12 detik) */
     #fallback-box {
       display: none;
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .fallback-text {
       font-size: 12px;
-      color: #94a3b8;
-      margin-bottom: 10px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
     }
 
     .btn-direct {
       display: inline-block;
-      padding: 10px 20px;
+      padding: 10px 22px;
       background-color: #00ffaa;
-      color: #0b0f19;
+      color: #0f172a;
       font-size: 13px;
       font-weight: 700;
       text-decoration: none;
       border-radius: 8px;
     }
 
-    /* Container Iframe Full-Screen dengan transisi instan */
+    /* Container Iframe Full-Screen */
     #app-frame {
+      position: fixed;
+      inset: 0;
       width: 100%;
       height: 100%;
       border: none;
       display: block;
-      background-color: #0b0f19;
-      opacity: 0;
-      transition: opacity 0.25s ease-out;
-    }
-
-    #app-frame.loaded {
-      opacity: 1;
+      background-color: #0f172a;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
 
-  <!-- Layar Pembuka Statis dengan Logo Sekolah -->
+  <!-- Layar Pembuka Statis: Tampil utuh dari awal hingga portal selesai dimuat -->
   <div id="loader-overlay">
     <div class="splash-container">
       <div class="logo-wrapper">
         <img 
-          src="https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w256" 
+          id="school-logo-img"
+          src="https://lh3.googleusercontent.com/d/1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k" 
           alt="Logo SMAN 1 Pulau Tiga Barat" 
           class="school-logo"
-          onerror="this.style.display='none'"
+          onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w256';"
         >
       </div>
       <div class="school-title">SMAN 1 Pulau Tiga Barat</div>
       
       <div id="fallback-box">
-        <div class="fallback-text">Koneksi membutuhkan waktu lebih lama?</div>
+        <div class="fallback-text">Koneksi internet melambat?</div>
         <a id="direct-link" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" target="_top" class="btn-direct">
-          Buka Langsung Aplikasi
+          Buka Langsung Portal
         </a>
       </div>
     </div>
@@ -178,13 +179,13 @@
 
   <script>
     (function() {
-      // Konfigurasi URL tujuan Apps Script
       var GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec';
       
       var iframeEl = document.getElementById('app-frame');
       var loaderEl = document.getElementById('loader-overlay');
       var fallbackEl = document.getElementById('fallback-box');
       var directLinkEl = document.getElementById('direct-link');
+      var isRevealed = false;
 
       // Meneruskan query parameter dari URL GitHub/Vercel ke iframe Apps Script
       var currentParams = window.location.search;
@@ -194,26 +195,24 @@
         directLinkEl.href = targetWithParams;
       }
 
-      // Fungsi membuka tabir layar pembuka seketika
-      function revealApp() {
-        if (!iframeEl.classList.contains('loaded')) {
-          iframeEl.classList.add('loaded');
-        }
-        if (!loaderEl.classList.contains('hidden')) {
+      // Buka layar pembuka HANYA setelah portal di dalam iframe selesai dimuat
+      function revealPortal() {
+        if (isRevealed) return;
+        isRevealed = true;
+        // Beri jeda 450ms setelah event load agar CSS & DOM awal di dalam iframe sudah tergambar rapi
+        setTimeout(function() {
           loaderEl.classList.add('hidden');
-        }
+        }, 450);
       }
 
-      // Buka langsung tanpa jeda tambahan begitu iframe selesai merender DOM awal
-      iframeEl.addEventListener('load', revealApp);
+      iframeEl.addEventListener('load', revealPortal);
 
-      // Fail-safe Auto-Reveal: Jika aset eksternal lambat, buka tampilan utama dalam 2.8 detik
-      setTimeout(revealApp, 2800);
-
-      // Tampilkan opsi tombol buka langsung jika koneksi benar-benar terputus (> 7 detik)
+      // Tampilkan tombol bantuan hanya jika koneksi benar-benar lambat (> 12 detik)
       setTimeout(function() {
-        fallbackEl.style.display = 'block';
-      }, 7000);
+        if (!isRevealed) {
+          fallbackEl.style.display = 'block';
+        }
+      }, 12000);
     })();
   </script>
 </body>
