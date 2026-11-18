@@ -2,15 +2,35 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f19">
+  
+  <!-- Optimasi Kecepatan Koneksi ke Server Google Apps Script -->
+  <link rel="preconnect" href="https://script.google.com" crossorigin>
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link rel="dns-prefetch" href="https://script.google.com">
+  <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+
+  <!-- Konfigurasi PWA & Mobile Fullscreen (Android & iOS) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LMS SMAN 1 PTB">
+
+  <!-- Meta OpenGraph untuk Preview Tautan di WhatsApp / Media Sosial -->
+  <meta property="og:title" content="LMS SMAN 1 Pulau Tiga Barat">
+  <meta property="og:description" content="Portal Pembelajaran Digital, Presensi, Tugas, dan Ujian Online SMAN 1 Pulau Tiga Barat.">
+  <meta property="og:type" content="website">
+
   <title>LMS SMAN 1 Pulau Tiga Barat</title>
   <style>
-    /* Reset dasar dan pengaturan tinggi layar dinamis (mobile-friendly) */
+    /* Reset dasar, anti pull-to-refresh tidak sengaja, dan tinggi layar dinamis */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
@@ -18,6 +38,7 @@
       height: 100%;
       height: 100dvh;
       overflow: hidden;
+      overscroll-behavior: none;
       background-color: #0b0f19;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: #ffffff;
@@ -33,7 +54,7 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
+      transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.45s ease;
     }
 
     #loader-overlay.hidden {
@@ -43,25 +64,26 @@
     }
 
     .loader-card {
-      background: rgba(21, 27, 38, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 255, 170, 0.2);
-      border-radius: 16px;
-      padding: 28px 36px;
+      background: rgba(21, 27, 38, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(0, 255, 170, 0.22);
+      border-radius: 18px;
+      padding: 30px 36px;
       text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
       max-width: 90%;
+      width: 340px;
     }
 
     .spinner {
       width: 44px;
       height: 44px;
-      margin: 0 auto 16px;
+      margin: 0 auto 18px;
       border: 3px solid rgba(0, 255, 170, 0.15);
       border-top-color: #00ffaa;
       border-radius: 50%;
-      animation: spin 0.9s linear infinite;
+      animation: spin 0.85s linear infinite;
     }
 
     @keyframes spin {
@@ -70,8 +92,8 @@
 
     .loader-title {
       font-size: 16px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
       color: #f8fafc;
       margin-bottom: 6px;
     }
@@ -79,6 +101,30 @@
     .loader-subtitle {
       font-size: 13px;
       color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    /* Progress bar halus dekoratif */
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, #00ffaa, #00d4ff);
+      border-radius: 4px;
+      animation: indeterminate 1.4s infinite ease-in-out;
+    }
+
+    @keyframes indeterminate {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(280%); }
     }
 
     /* Tombol Fallback jika koneksi lambat / iframe tertahan */
@@ -107,13 +153,19 @@
       box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
     }
 
-    /* Container Iframe Full-Screen */
+    /* Container Iframe Full-Screen dengan transisi fade-in smooth */
     #app-frame {
       width: 100%;
       height: 100%;
       border: none;
       display: block;
       background-color: #0b0f19;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #app-frame.loaded {
+      opacity: 1;
     }
   </style>
 </head>
@@ -124,10 +176,13 @@
     <div class="loader-card">
       <div class="spinner"></div>
       <div class="loader-title">LMS SMAN 1 Pulau Tiga Barat</div>
-      <div class="loader-subtitle">Menghubungkan ke server akademik...</div>
+      <div class="loader-subtitle">Menyiapkan ruang belajar digital...</div>
+      <div class="progress-track">
+        <div class="progress-bar"></div>
+      </div>
       
       <div id="fallback-box">
-        <div class="loader-subtitle">Membutuhkan waktu lebih lama dari biasanya?</div>
+        <div class="loader-subtitle">Koneksi membutuhkan waktu lebih lama?</div>
         <a id="direct-link" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" target="_top" class="btn-direct">
           Buka Langsung Aplikasi
         </a>
@@ -139,7 +194,7 @@
   <iframe 
     id="app-frame"
     src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec"
-    allow="geolocation; microphone; camera; clipboard-read; clipboard-write"
+    allow="geolocation; microphone; camera; clipboard-read; clipboard-write; fullscreen"
     allowfullscreen="true"
     loading="eager">
   </iframe>
@@ -154,7 +209,7 @@
       var fallbackEl = document.getElementById('fallback-box');
       var directLinkEl = document.getElementById('direct-link');
 
-      // Meneruskan query parameter dari URL GitHub (jika ada, misal ?page=login) ke iframe Apps Script
+      // Meneruskan query parameter dari URL GitHub/Vercel ke iframe Apps Script
       var currentParams = window.location.search;
       if (currentParams) {
         var targetWithParams = GAS_WEB_APP_URL + currentParams;
@@ -162,11 +217,12 @@
         directLinkEl.href = targetWithParams;
       }
 
-      // Sembunyikan layar loading ketika iframe selesai dimuat
+      // Sembunyikan layar loading dan tampilkan iframe secara smooth saat selesai dimuat
       iframeEl.addEventListener('load', function() {
+        iframeEl.classList.add('loaded');
         setTimeout(function() {
           loaderEl.classList.add('hidden');
-        }, 300);
+        }, 250);
       });
 
       // Tampilkan opsi tombol buka langsung jika loading melebihi 8 detik
