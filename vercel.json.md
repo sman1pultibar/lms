@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self \"https://script.google.com\" \"https://*.googleusercontent.com\"), microphone=(self \"https://script.google.com\" \"https://*.googleusercontent.com\"), geolocation=(self \"https://script.google.com\" \"https://*.googleusercontent.com\")"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}
