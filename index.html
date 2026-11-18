@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0f19">
+  <title>Zettbos Web App</title>
+  <style>
+    /* Reset dasar dan pengaturan tinggi layar dinamis (mobile-friendly) */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #0b0f19;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #ffffff;
+    }
+
+    /* Layar Loading dengan gaya Zettbos Glassmorphism */
+    #loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #151b26 0%, #0b0f19 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #loader-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-card {
+      background: rgba(21, 27, 38, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 255, 170, 0.2);
+      border-radius: 16px;
+      padding: 28px 36px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      max-width: 90%;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 16px;
+      border: 3px solid rgba(0, 255, 170, 0.15);
+      border-top-color: #00ffaa;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loader-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #f8fafc;
+      margin-bottom: 6px;
+    }
+
+    .loader-subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    /* Tombol Fallback jika koneksi lambat / iframe tertahan */
+    #fallback-box {
+      display: none;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-direct {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 18px;
+      background-color: #00ffaa;
+      color: #0b0f19;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-direct:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
+    }
+
+    /* Container Iframe Full-Screen */
+    #app-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background-color: #0b0f19;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay Loading saat iframe Google Apps Script sedang dimuat -->
+  <div id="loader-overlay">
+    <div class="loader-card">
+      <div class="spinner"></div>
+      <div class="loader-title">Memuat Aplikasi...</div>
+      <div class="loader-subtitle">Menghubungkan ke server Google Apps Script</div>
+      
+      <div id="fallback-box">
+        <div class="loader-subtitle">Membutuhkan waktu lebih lama dari biasanya?</div>
+        <a id="direct-link" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" target="_top" class="btn-direct">
+          Buka Langsung Aplikasi
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Iframe Pembungkus Web App Google Apps Script -->
+  <iframe 
+    id="app-frame"
+    src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec"
+    allow="geolocation; microphone; camera; clipboard-read; clipboard-write"
+    allowfullscreen="true"
+    loading="eager">
+  </iframe>
+
+  <script>
+    (function() {
+      // Konfigurasi URL tujuan Apps Script
+      var GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec';
+      
+      var iframeEl = document.getElementById('app-frame');
+      var loaderEl = document.getElementById('loader-overlay');
+      var fallbackEl = document.getElementById('fallback-box');
+      var directLinkEl = document.getElementById('direct-link');
+
+      // Meneruskan query parameter dari URL GitHub (jika ada, misal ?page=login) ke iframe Apps Script
+      var currentParams = window.location.search;
+      if (currentParams) {
+        var targetWithParams = GAS_WEB_APP_URL + currentParams;
+        iframeEl.src = targetWithParams;
+        directLinkEl.href = targetWithParams;
+      }
+
+      // Sembunyikan layar loading ketika iframe selesai dimuat
+      iframeEl.addEventListener('load', function() {
+        setTimeout(function() {
+          loaderEl.classList.add('hidden');
+        }, 300);
+      });
+
+      // Tampilkan opsi tombol buka langsung jika loading melebihi 8 detik
+      setTimeout(function() {
+        if (!loaderEl.classList.contains('hidden')) {
+          fallbackEl.style.display = 'block';
+        }
+      }, 8000);
+    })();
+  </script>
+</body>
+</html>
