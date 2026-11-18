@@ -1,0 +1,24 @@
+{
+  "name": "LMS SMAN 1 Pulau Tiga Barat",
+  "short_name": "LMS SMAN 1 PTB",
+  "description": "Sistem Manajemen Pembelajaran Digital SMAN 1 Pulau Tiga Barat",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "icons": [
+    {
+      "src": "https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://drive.google.com/thumbnail?id=1nqJ02h0xff2v_wgAQLAGi2_6KiewIf-k&sz=w512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
