@@ -2,222 +2,183 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
-  
-  <!-- Optimasi Kecepatan Koneksi & Preload Aset Lokal + Dokumen Utama Apps Script -->
-  <link rel="preconnect" href="https://script.google.com" crossorigin>
-  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-  <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="dns-prefetch" href="https://script.googleusercontent.com">
-  <link rel="preload" href="logo.png" as="image">
-  <link rel="preload" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" as="document">
-
-  <!-- Konfigurasi PWA & Mobile Fullscreen (Android & iOS) -->
-  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="LMS SMAN 1 Pulau Tiga Barat">
+  <title>LMS SMAN 1 Pulau Tiga Barat</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="logo.png">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="LMS SMAN 1 PTB">
-
-  <!-- Meta OpenGraph untuk Preview Tautan di WhatsApp / Media Sosial -->
+  <link rel="manifest" href="manifest.json">
   <meta property="og:title" content="LMS SMAN 1 Pulau Tiga Barat">
-  <meta property="og:description" content="Portal Pembelajaran Digital, Presensi, Tugas, dan Ujian Online SMAN 1 Pulau Tiga Barat.">
+  <meta property="og:description" content="Portal Pembelajaran Digital Terpadu SMAN 1 Pulau Tiga Barat">
   <meta property="og:image" content="logo.png">
-  <meta property="og:type" content="website">
-
-  <title>LMS SMAN 1 Pulau Tiga Barat</title>
+  <link rel="dns-prefetch" href="https://script.google.com">
+  <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+  <link rel="preconnect" href="https://script.google.com" crossorigin>
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link rel="preload" as="document" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec">
   <style>
-    /* Reset dasar, anti pull-to-refresh tidak sengaja, dan tinggi layar dinamis */
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
     }
-
     html, body {
       width: 100%;
-      height: 100%;
       height: 100dvh;
       overflow: hidden;
+      background-color: #f0f9ff;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       overscroll-behavior: none;
-      background-color: #0f172a;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #f8fafc;
     }
-
-    /* Layar Pembuka Statis: Menutup penuh hingga portal siap 100% */
-    #loader-overlay {
+    #splash-screen {
       position: fixed;
       inset: 0;
-      background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+      z-index: 9999;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
+      background: linear-gradient(180deg, #e0f2fe 0%, #f8fafc 50%, #fef9c3 100%);
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+      overflow: hidden;
     }
-
-    #loader-overlay.hidden {
+    #splash-screen.hidden {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
     }
-
-    .splash-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-      max-width: 90%;
-    }
-
-    .logo-wrapper {
-      width: 120px;
-      height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 18px;
-    }
-
-    .school-logo {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45));
-    }
-
-    .school-title {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      color: #f8fafc;
-      line-height: 1.4;
-    }
-
-    /* Tombol Fallback hanya muncul jika jaringan bermasalah (> 12 detik) */
-    #fallback-box {
-      display: none;
-      margin-top: 28px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .fallback-text {
-      font-size: 12px;
-      color: #cbd5e1;
-      margin-bottom: 12px;
-    }
-
-    .btn-direct {
-      display: inline-block;
-      padding: 10px 22px;
-      background-color: #00ffaa;
-      color: #0f172a;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      border-radius: 8px;
-    }
-
-    /* Container Iframe Full-Screen */
-    #app-frame {
-      position: fixed;
+    .photo-bg {
+      position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+      opacity: 0.28;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .brand-card {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 28px 34px;
+      margin: 0 20px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.96);
+      border-radius: 24px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
+      max-width: 420px;
+      width: 90%;
+    }
+    .school-logo {
+      width: 112px;
+      height: 112px;
+      object-fit: contain;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 6px 14px rgba(2, 132, 199, 0.2));
+    }
+    .school-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.3px;
+      line-height: 1.3;
+    }
+    .school-subtitle {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0284c7;
+      letter-spacing: 0.4px;
+    }
+    .fallback-box {
+      display: none;
+      margin-top: 18px;
+    }
+    .fallback-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #0284c7;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+    #app-frame {
+      width: 100%;
+      height: 100dvh;
       border: none;
       display: block;
-      background-color: #0f172a;
-      z-index: 1;
+      background-color: #ffffff;
     }
   </style>
 </head>
 <body>
 
-  <!-- Layar Pembuka Statis: Tampil utuh dari awal hingga portal selesai dimuat -->
-  <div id="loader-overlay">
-    <div class="splash-container">
-      <div class="logo-wrapper">
-        <img 
-          id="school-logo-img"
-          src="logo.png" 
-          alt="Logo SMAN 1 Pulau Tiga Barat" 
-          class="school-logo"
-        >
-      </div>
+  <div id="splash-screen">
+    <!-- Foto Latar Belakang Kegiatan Sekolah Transparan -->
+    <img src="bg-sekolah.jpg" alt="Latar Belakang SMAN 1 Pulau Tiga Barat" class="photo-bg" onerror="this.style.display='none'">
+
+    <!-- Kartu Logo & Judul Sekolah (Statis / Diam dari Awal Sampai Portal Siap) -->
+    <div class="brand-card">
+      <img src="logo.png" alt="Logo SMAN 1 Pulau Tiga Barat" class="school-logo" onerror="this.style.display='none'">
       <div class="school-title">SMAN 1 Pulau Tiga Barat</div>
-      
-      <div id="fallback-box">
-        <div class="fallback-text">Koneksi internet melambat?</div>
-        <a id="direct-link" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" target="_top" class="btn-direct">
-          Buka Langsung Portal
+      <div class="school-subtitle">Portal Pembelajaran Digital Terpadu</div>
+      <div class="fallback-box" id="fallback-box">
+        <a href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" target="_top" class="fallback-btn">
+          Buka Portal Secara Langsung
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Iframe Pembungkus Web App Google Apps Script -->
-  <iframe 
+  <iframe
     id="app-frame"
     src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec"
-    allow="geolocation; microphone; camera; clipboard-read; clipboard-write; fullscreen"
-    allowfullscreen="true"
-    loading="eager">
+    title="LMS SMAN 1 Pulau Tiga Barat"
+    allow="camera *; microphone *; geolocation *; clipboard-read *; clipboard-write *; fullscreen *"
+    allowfullscreen>
   </iframe>
 
   <script>
-    (function() {
-      var GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec';
-      
-      var iframeEl = document.getElementById('app-frame');
-      var loaderEl = document.getElementById('loader-overlay');
-      var fallbackEl = document.getElementById('fallback-box');
-      var directLinkEl = document.getElementById('direct-link');
-      var isRevealed = false;
+    (function () {
+      var splash = document.getElementById('splash-screen');
+      var iframe = document.getElementById('app-frame');
+      var fallbackBox = document.getElementById('fallback-box');
+      var isLoaded = false;
 
-      // Meneruskan query parameter dari URL GitHub/Vercel ke iframe Apps Script
-      var currentParams = window.location.search;
-      if (currentParams) {
-        var targetWithParams = GAS_WEB_APP_URL + currentParams;
-        iframeEl.src = targetWithParams;
-        directLinkEl.href = targetWithParams;
+      function hideSplash() {
+        if (isLoaded) return;
+        isLoaded = true;
+        setTimeout(function () {
+          splash.classList.add('hidden');
+        }, 400);
       }
 
-      // Buka layar pembuka HANYA setelah portal di dalam iframe selesai dimuat
-      function revealPortal() {
-        if (isRevealed) return;
-        isRevealed = true;
-        // Beri jeda 450ms setelah event load agar CSS & DOM awal di dalam iframe sudah tergambar rapi
-        setTimeout(function() {
-          loaderEl.classList.add('hidden');
-        }, 450);
-      }
+      iframe.addEventListener('load', hideSplash);
 
-      iframeEl.addEventListener('load', revealPortal);
-
-      // Tampilkan tombol bantuan hanya jika koneksi benar-benar lambat (> 12 detik)
-      setTimeout(function() {
-        if (!isRevealed) {
-          fallbackEl.style.display = 'block';
+      // Tampilkan tombol bantuan hanya jika koneksi sangat lambat (> 12 detik)
+      setTimeout(function () {
+        if (!isLoaded && fallbackBox) {
+          fallbackBox.style.display = 'block';
         }
       }, 12000);
 
-      // Registrasi Service Worker (PWA Offline & Cache Aset Lokal)
+      // Registrasi Service Worker PWA
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('sw.js').catch(function(err) {
-            console.log('SW registration info:', err);
-          });
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function () {});
         });
       }
     })();
