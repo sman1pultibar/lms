@@ -35,7 +35,7 @@
       width: 100%;
       height: 100dvh;
       overflow: hidden;
-      background-color: #f0f9ff;
+      background-color: #070D1E;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -51,7 +51,7 @@
       justify-content: flex-start;
       padding-top: calc(env(safe-area-inset-top, 0px) + clamp(36px, 7vh, 72px));
       background: linear-gradient(180deg, #e0f2fe 0%, #f8fafc 50%, #fef9c3 100%);
-      transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s ease;
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s ease;
       will-change: opacity, visibility;
       transform: translateZ(0);
       overflow: hidden;
@@ -113,11 +113,14 @@
       text-shadow: 0 1px 8px rgba(255, 255, 255, 0.96), 0 0 4px rgba(255, 255, 255, 0.92);
     }
     #app-frame {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
       width: 100%;
       height: 100dvh;
       border: none;
       display: block;
-      background-color: #ffffff;
+      background-color: #070D1E;
       transform: translateZ(0);
     }
   </style>
@@ -128,7 +131,7 @@
     <!-- Foto Latar Belakang Kegiatan Sekolah Transparan -->
     <img src="bg-sekolah.jpg" alt="Latar Belakang SMAN 1 Pulau Tiga Barat" class="photo-bg" decoding="sync" fetchpriority="high" onerror="this.style.display='none'">
 
-    <!-- Logo & Judul Sekolah Tanpa Kotak Putih -->
+    <!-- Logo & Judul Sekolah Tanpa Kotak Putih (Menunggu Sampai Halaman Login Siap 100%) -->
     <div class="brand-card">
       <img src="logo.png" alt="Logo SMAN 1 Pulau Tiga Barat" class="school-logo" decoding="sync" fetchpriority="high" onerror="this.style.display='none'">
       <div class="school-title">SMAN 1 Pulau Tiga Barat</div>
@@ -136,6 +139,7 @@
     </div>
   </div>
 
+  <!-- Iframe Portal Login Dimuat Aktif di Belakang Splash Screen -->
   <iframe
     id="app-frame"
     src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec"
@@ -150,17 +154,31 @@
       var iframe = document.getElementById('app-frame');
       var isHidden = false;
 
-      function hideSplash() {
+      function hideSplash(delayMs) {
         if (isHidden) return;
         isHidden = true;
-        splash.classList.add('hidden');
+        setTimeout(function () {
+          splash.classList.add('hidden');
+        }, delayMs || 0);
       }
 
-      // Langsung buka tabir segera setelah iframe selesai dimuat
-      iframe.addEventListener('load', hideSplash);
+      // 1. Jika halaman login di dalam Apps Script mengirim sinyal siap, langsung buka seketika
+      window.addEventListener('message', function (event) {
+        if (event && event.data === 'LMS_PORTAL_READY') {
+          hideSplash(80);
+        }
+      });
 
-      // Batas maksimal splash screen 2,2 detik agar tidak terasa lama
-      setTimeout(hideSplash, 2200);
+      // 2. Tunggu sampai dokumen & UI di dalam iframe benar-benar selesai dimuat (tanpa timer paksa 2,2 detik)
+      iframe.addEventListener('load', function () {
+        // Beri jeda 650ms agar Google Apps Script selesai merender UI login di dalam sandbox iframe
+        hideSplash(650);
+      });
+
+      // 3. Pengaman akhir hanya jika jaringan terputus/hang sangat lama (18 detik)
+      setTimeout(function () {
+        hideSplash(0);
+      }, 18000);
 
       // Registrasi Service Worker PWA
       if ('serviceWorker' in navigator) {
