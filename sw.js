@@ -1,4 +1,4 @@
-var CACHE_NAME = 'lms-sman1pultibar-v2';
+var CACHE_NAME = 'lms-sman1pultibar-v3';
 var ASSETS_TO_CACHE = [
   './',
   'index.html',
