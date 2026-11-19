@@ -24,6 +24,16 @@
 
       // 1. Minta Izin Notifikasi dari Tombol di dalam LMS
       if (event.data.type === "ONESIGNAL_MINTA_IZIN") {
+        // Cek jika berjalan di dalam aplikasi Median Android
+        if (window.median && window.median.onesignal && window.median.onesignal.register) {
+          window.median.onesignal.register();
+          var frameM = document.getElementById("lmsFrame");
+          if (frameM && frameM.contentWindow) {
+            frameM.contentWindow.postMessage({ type: "ONESIGNAL_STATUS_IZIN", granted: true }, "*");
+          }
+          return;
+        }
+
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function(OneSignal) {
           try {
@@ -48,14 +58,31 @@
       if (event.data.type === "ONESIGNAL_SINKRON_USER") {
         var u = event.data.user;
         if (!u) return;
+
+        var cleanId = String(u.id || "").trim();
+        var cleanRole = String(u.peran || "Siswa");
+        var cleanKelas = String(u.kelasAtauMapel || "").trim().toUpperCase();
+        var cleanNama = String(u.nama || "").trim();
+
+        // Dukungan Median Android JS Bridge
+        if (window.median && window.median.onesignal) {
+          if (window.median.onesignal.login) window.median.onesignal.login({ externalId: cleanId });
+          if (window.median.onesignal.tags && window.median.onesignal.tags.setTags) {
+            window.median.onesignal.tags.setTags({
+              tags: {
+                app: "LMS_SMAN1",
+                role: cleanRole,
+                kelas: cleanKelas,
+                idUser: cleanId,
+                nama: cleanNama
+              }
+            });
+          }
+        }
+
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function(OneSignal) {
           try {
-            var cleanId = String(u.id || "").trim();
-            var cleanRole = String(u.peran || "Siswa");
-            var cleanKelas = String(u.kelasAtauMapel || "").trim().toUpperCase();
-            var cleanNama = String(u.nama || "").trim();
-
             await OneSignal.login(cleanId);
             await OneSignal.User.addTags({
               app: "LMS_SMAN1",
@@ -108,7 +135,7 @@
   <!-- Ganti URL iframe di bawah ini dengan URL Web App Google Apps Script Anda (/exec) jika berbeda -->
   <iframe 
     id="lmsFrame" 
-    src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" 
+    src="https://script.google.com/macros/s/AKfycbyc9183qXhI1J_q17d45xS515n9g/exec" 
     allow="camera *; microphone *; geolocation *; autoplay; fullscreen; display-capture">
   </iframe>
 </body>
