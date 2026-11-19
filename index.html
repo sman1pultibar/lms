@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#070D1E">
   <title>LMS SMAN 1 Pulau Tiga Barat</title>
   
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+
   <!-- OneSignal Web Push Notification SDK (FCM Engine) -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
@@ -24,7 +28,6 @@
 
       // 1. Minta Izin Notifikasi dari Tombol di dalam LMS
       if (event.data.type === "ONESIGNAL_MINTA_IZIN") {
-        // Cek jika berjalan di dalam aplikasi Median Android
         if (window.median && window.median.onesignal && window.median.onesignal.register) {
           window.median.onesignal.register();
           var frameM = document.getElementById("lmsFrame");
@@ -40,7 +43,6 @@
             var permission = await OneSignal.Notifications.requestPermission();
             var isGranted = (permission === true || permission === "granted" || Notification.permission === "granted");
             
-            // Beritahu iframe LMS bahwa izin telah diberikan
             var frame = document.getElementById("lmsFrame");
             if (frame && frame.contentWindow) {
               frame.contentWindow.postMessage({
@@ -64,7 +66,6 @@
         var cleanKelas = String(u.kelasAtauMapel || "").trim().toUpperCase();
         var cleanNama = String(u.nama || "").trim();
 
-        // Dukungan Median Android JS Bridge
         if (window.median && window.median.onesignal) {
           if (window.median.onesignal.login) window.median.onesignal.login({ externalId: cleanId });
           if (window.median.onesignal.tags && window.median.onesignal.tags.setTags) {
@@ -109,6 +110,22 @@
         });
       }
     });
+
+    // Otomatis menutup Splash Screen ketika iframe LMS sudah siap dimuat
+    function dismissSplash() {
+      var splash = document.getElementById("portalSplash");
+      if (splash && !splash.classList.contains("hidden")) {
+        splash.classList.add("hidden");
+        setTimeout(function() {
+          splash.style.display = "none";
+        }, 700);
+      }
+    }
+
+    // Safety timeout: jika koneksi lambat, splash otomatis beralih maksimal 7 detik
+    window.addEventListener("DOMContentLoaded", function() {
+      setTimeout(dismissSplash, 7000);
+    });
   </script>
 
   <style>
@@ -122,21 +139,171 @@
       height: 100%;
       overflow: hidden;
       background-color: #070D1E;
+      background-image: linear-gradient(135deg, rgba(7, 13, 30, 0.88), rgba(15, 23, 42, 0.92)), url('bg-sekolah.jpg');
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
+    
     #lmsFrame {
       width: 100%;
       height: 100%;
       border: none;
       display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Portal Splash Screen dengan Logo dan Background Sekolah */
+    #portalSplash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(7, 13, 30, 0.88) 0%, rgba(15, 23, 42, 0.94) 100%), url('bg-sekolah.jpg') center/cover no-repeat;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.65s;
+    }
+
+    #portalSplash.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 36px 28px;
+      max-width: 90%;
+      width: 360px;
+      border-radius: 24px;
+      background: rgba(15, 25, 50, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      animation: floatUp 0.7s ease-out;
+    }
+
+    @keyframes floatUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .splash-logo-container {
+      width: 86px;
+      height: 86px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 20px rgba(14, 165, 233, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .splash-logo-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .splash-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(14, 165, 233, 0.18);
+      border: 1px solid rgba(14, 165, 233, 0.4);
+      color: #38BDF8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .splash-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .splash-sub {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-bottom: 24px;
+    }
+
+    /* Animasi Spinner Pemuatan */
+    .splash-loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38BDF8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .splash-status {
+      font-size: 12px;
+      color: #64748B;
+      font-weight: 500;
+      letter-spacing: 0.2px;
     }
   </style>
 </head>
 <body>
-  <!-- Ganti URL iframe di bawah ini dengan URL Web App Google Apps Script Anda (/exec) jika berbeda -->
+
+  <!-- Layar Portal Splash: Menampilkan Logo & Background Sekolah -->
+  <div id="portalSplash">
+    <div class="splash-card">
+      <div class="splash-logo-container">
+        <img class="splash-logo-img" src="logo.png" alt="Logo SMAN 1 Pulau Tiga Barat">
+      </div>
+      <div class="splash-badge">
+        Portal Akademik Resmi
+      </div>
+      <h1 class="splash-title">SMAN 1 PULAU TIGA BARAT</h1>
+      <p class="splash-sub">Learning Management System</p>
+      <div class="splash-loader"></div>
+      <span class="splash-status">Menghubungkan ke Portal...</span>
+    </div>
+  </div>
+
+  <!-- Iframe Aplikasi LMS Google Apps Script -->
   <iframe 
     id="lmsFrame" 
-    src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" 
-    allow="camera *; microphone *; geolocation *; autoplay; fullscreen; display-capture">
+    src="https://script.google.com/macros/s/AKfycbyc9183qXhI1J_q17d45xS515n9g/exec" 
+    allow="camera *; microphone *; geolocation *; autoplay; fullscreen; display-capture"
+    onload="dismissSplash()">
   </iframe>
+
 </body>
 </html>
