@@ -1,4 +1,4 @@
-var CACHE_NAME = 'lms-sman1pultibar-v3';
+var CACHE_NAME = 'lms-sman1pultibar-v4';
 var ASSETS_TO_CACHE = [
   './',
   'index.html',
@@ -33,7 +33,7 @@ self.addEventListener('activate', function (event) {
   self.clients.claim();
 });
 
-// Tahap Fetch: Cache-First untuk aset lokal, Network-First untuk portal Apps Script
+// Tahap Fetch: Network-First untuk index.html, Cache-First untuk gambar/manifest
 self.addEventListener('fetch', function (event) {
   var requestUrl = new URL(event.request.url);
 
@@ -42,13 +42,31 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
+  // Untuk dokumen HTML utama, utamakan versi terbaru dari jaringan lalu fallback ke cache
+  if (event.request.mode === 'navigate' || requestUrl.pathname.endsWith('index.html') || requestUrl.pathname === '/') {
+    event.respondWith(
+      fetch(event.request)
+        .then(function (networkResponse) {
+          var responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(function (cache) {
+            cache.put(event.request, responseClone);
+          });
+          return networkResponse;
+        })
+        .catch(function () {
+          return caches.match('index.html');
+        })
+    );
+    return;
+  }
+
+  // Untuk aset statis (logo.png, bg-sekolah.jpg, manifest.json), sajikan instan dari cache
   event.respondWith(
     caches.match(event.request).then(function (cachedResponse) {
       if (cachedResponse) {
         return cachedResponse;
       }
       return fetch(event.request).catch(function () {
-        // Tampilan Offline Fallback ramah jika internet terputus total
         return new Response(
           '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Koneksi Terputus - SMAN 1 Pulau Tiga Barat</title>' +
           '<style>body{margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f0f9ff;color:#0f172a;font-family:sans-serif;text-align:center;padding:24px;}' +
