@@ -3,190 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#e0f2fe">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="LMS SMAN 1 Pulau Tiga Barat">
   <title>LMS SMAN 1 Pulau Tiga Barat</title>
-  <link rel="icon" type="image/png" href="logo.png">
-  <link rel="apple-touch-icon" href="logo.png">
-  <link rel="manifest" href="manifest.json">
-  <meta property="og:title" content="LMS SMAN 1 Pulau Tiga Barat">
-  <meta property="og:description" content="Portal Pembelajaran Digital Terpadu SMAN 1 Pulau Tiga Barat">
-  <meta property="og:image" content="logo.png">
-  <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="dns-prefetch" href="https://script.googleusercontent.com">
-  <link rel="dns-prefetch" href="https://www.gstatic.com">
-  <link rel="preconnect" href="https://script.google.com" crossorigin>
-  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-  <link rel="preload" as="image" href="logo.png" fetchpriority="high">
-  <link rel="preload" as="image" href="bg-sekolah.jpg" fetchpriority="high">
-  <link rel="preload" as="document" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec">
+  
+  <!-- OneSignal Web Push Notification SDK (FCM Engine) -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "43e2810e-d719-4c08-83b8-6e55ded878de",
+        serviceWorkerPath: "OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: "/" }
+      });
+      console.log("OneSignal Vercel Root Initialized.");
+    });
+
+    // Jembatan Komunikasi Dua Arah antara LMS (Iframe) dengan Domain Utama Vercel
+    window.addEventListener("message", function(event) {
+      if (!event.data) return;
+
+      // 1. Minta Izin Notifikasi dari Tombol di dalam LMS
+      if (event.data.type === "ONESIGNAL_MINTA_IZIN") {
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+          try {
+            var permission = await OneSignal.Notifications.requestPermission();
+            var isGranted = (permission === true || permission === "granted" || Notification.permission === "granted");
+            
+            // Beritahu iframe LMS bahwa izin telah diberikan
+            var frame = document.getElementById("lmsFrame");
+            if (frame && frame.contentWindow) {
+              frame.contentWindow.postMessage({
+                type: "ONESIGNAL_STATUS_IZIN",
+                granted: isGranted
+              }, "*");
+            }
+          } catch (eErr) {
+            console.error("Error meminta izin notifikasi di Vercel:", eErr);
+          }
+        });
+      }
+
+      // 2. Sinkronkan Akun Pengguna (Guru / Siswa & Kelas)
+      if (event.data.type === "ONESIGNAL_SINKRON_USER") {
+        var u = event.data.user;
+        if (!u) return;
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+          try {
+            var cleanId = String(u.id || "").trim();
+            var cleanRole = String(u.peran || "Siswa");
+            var cleanKelas = String(u.kelasAtauMapel || "").trim().toUpperCase();
+            var cleanNama = String(u.nama || "").trim();
+
+            await OneSignal.login(cleanId);
+            await OneSignal.User.addTags({
+              app: "LMS_SMAN1",
+              role: cleanRole,
+              kelas: cleanKelas,
+              idUser: cleanId,
+              nama: cleanNama
+            });
+            console.log("OneSignal Vercel: Sukses Sinkronisasi User ->", cleanRole, cleanKelas, cleanNama);
+          } catch (eTag) {
+            console.warn("OneSignal Tag notice:", eTag);
+          }
+        });
+      }
+
+      // 3. Logout Pengguna
+      if (event.data.type === "ONESIGNAL_LOGOUT") {
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+          try {
+            await OneSignal.logout();
+            console.log("OneSignal Vercel: User logged out.");
+          } catch (eOut) {}
+        });
+      }
+    });
+  </script>
+
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent;
     }
     html, body {
       width: 100%;
-      height: 100dvh;
+      height: 100%;
       overflow: hidden;
       background-color: #070D1E;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overscroll-behavior: none;
     }
-    #splash-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding-top: calc(env(safe-area-inset-top, 0px) + clamp(36px, 7vh, 72px));
-      background: linear-gradient(180deg, #e0f2fe 0%, #f8fafc 50%, #fef9c3 100%);
-      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s ease;
-      will-change: opacity, visibility;
-      transform: translateZ(0);
-      overflow: hidden;
-      user-select: none;
-    }
-    #splash-screen.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-    .photo-bg {
-      position: absolute;
-      inset: 0;
+    #lmsFrame {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: center 28%;
-      opacity: 0.55;
-      z-index: 1;
-      pointer-events: none;
-      transform: translateZ(0);
-    }
-    .brand-card {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 12px 20px;
-      margin: 0 16px;
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      max-width: 480px;
-      width: 92%;
-    }
-    .school-logo {
-      width: clamp(84px, 14vw, 108px);
-      height: clamp(84px, 14vw, 108px);
-      object-fit: contain;
-      margin-bottom: 10px;
-      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.92)) drop-shadow(0 2px 6px rgba(15, 23, 42, 0.25));
-    }
-    .school-title {
-      font-size: clamp(1.2rem, 3.5vw, 1.55rem);
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: 0.3px;
-      line-height: 1.25;
-      text-shadow: 0 1px 10px rgba(255, 255, 255, 0.96), 0 0 4px rgba(255, 255, 255, 0.92);
-    }
-    .school-subtitle {
-      margin-top: 4px;
-      font-size: clamp(0.8rem, 2.2vw, 0.95rem);
-      font-weight: 700;
-      color: #0369a1;
-      letter-spacing: 0.4px;
-      text-shadow: 0 1px 8px rgba(255, 255, 255, 0.96), 0 0 4px rgba(255, 255, 255, 0.92);
-    }
-    #app-frame {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      width: 100%;
-      height: 100dvh;
       border: none;
       display: block;
-      background-color: #070D1E;
-      transform: translateZ(0);
     }
   </style>
 </head>
 <body>
-
-  <div id="splash-screen">
-    <!-- Foto Latar Belakang Kegiatan Sekolah Transparan -->
-    <img src="bg-sekolah.jpg" alt="Latar Belakang SMAN 1 Pulau Tiga Barat" class="photo-bg" decoding="sync" fetchpriority="high" onerror="this.style.display='none'">
-
-    <!-- Logo & Judul Sekolah Tanpa Kotak Putih (Menunggu Sampai Halaman Login Siap 100%) -->
-    <div class="brand-card">
-      <img src="logo.png" alt="Logo SMAN 1 Pulau Tiga Barat" class="school-logo" decoding="sync" fetchpriority="high" onerror="this.style.display='none'">
-      <div class="school-title">SMAN 1 Pulau Tiga Barat</div>
-      <div class="school-subtitle">Portal Pembelajaran Digital Terpadu</div>
-    </div>
-  </div>
-
-  <!-- Iframe Portal Login Dimuat Aktif di Belakang Splash Screen -->
-  <iframe
-    id="app-frame"
-    src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec"
-    title="LMS SMAN 1 Pulau Tiga Barat"
-    allow="camera *; microphone *; geolocation *; clipboard-read *; clipboard-write *; fullscreen *"
-    allowfullscreen>
+  <!-- Ganti URL iframe di bawah ini dengan URL Web App Google Apps Script Anda (/exec) jika berbeda -->
+  <iframe 
+    id="lmsFrame" 
+    src="https://script.google.com/macros/s/AKfycbyc9183qXhI1J_q17d45xS515n9g/exec" 
+    allow="camera *; microphone *; geolocation *; autoplay; fullscreen; display-capture">
   </iframe>
-
-  <script>
-    (function () {
-      var splash = document.getElementById('splash-screen');
-      var iframe = document.getElementById('app-frame');
-      var isHidden = false;
-
-      function hideSplash(delayMs) {
-        if (isHidden) return;
-        isHidden = true;
-        setTimeout(function () {
-          splash.classList.add('hidden');
-        }, delayMs || 0);
-      }
-
-      // 1. Jika halaman login di dalam Apps Script mengirim sinyal siap, langsung buka seketika
-      window.addEventListener('message', function (event) {
-        if (event && event.data === 'LMS_PORTAL_READY') {
-          hideSplash(80);
-        }
-      });
-
-      // 2. Tunggu sampai dokumen & UI di dalam iframe benar-benar selesai dimuat (tanpa timer paksa 2,2 detik)
-      iframe.addEventListener('load', function () {
-        // Beri jeda 650ms agar Google Apps Script selesai merender UI login di dalam sandbox iframe
-        hideSplash(650);
-      });
-
-      // 3. Pengaman akhir hanya jika jaringan terputus/hang sangat lama (18 detik)
-      setTimeout(function () {
-        hideSplash(0);
-      }, 18000);
-
-      // Registrasi Service Worker PWA
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('sw.js').catch(function () {});
-        });
-      }
-    })();
-  </script>
 </body>
 </html>
