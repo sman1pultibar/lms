@@ -43,7 +43,7 @@
       justify-content: flex-start;
       padding-top: 8vh;
       background: linear-gradient(180deg, #e0f2fe 0%, #f8fafc 50%, #fef9c3 100%);
-      transition: opacity 0.35s ease, visibility 0.35s ease;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
       overflow: hidden;
     }
     #splash-screen.hidden {
@@ -100,21 +100,6 @@
       letter-spacing: 0.4px;
       text-shadow: 0 1px 8px rgba(255, 255, 255, 0.95), 0 0 4px rgba(255, 255, 255, 0.9);
     }
-    .fallback-box {
-      display: none;
-      margin-top: 14px;
-    }
-    .fallback-btn {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: #0284c7;
-      color: #ffffff;
-      font-weight: 700;
-      font-size: 0.85rem;
-      text-decoration: none;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
-    }
     #app-frame {
       width: 100%;
       height: 100dvh;
@@ -130,16 +115,11 @@
     <!-- Foto Latar Belakang Kegiatan Sekolah Transparan -->
     <img src="bg-sekolah.jpg" alt="Latar Belakang SMAN 1 Pulau Tiga Barat" class="photo-bg" onerror="this.style.display='none'">
 
-    <!-- Logo & Judul Sekolah Tanpa Kotak Putih (Posisi Atas Agar Wajah Foto Terlihat Jelas) -->
+    <!-- Logo & Judul Sekolah Tanpa Kotak Putih -->
     <div class="brand-card">
       <img src="logo.png" alt="Logo SMAN 1 Pulau Tiga Barat" class="school-logo" onerror="this.style.display='none'">
       <div class="school-title">SMAN 1 Pulau Tiga Barat</div>
       <div class="school-subtitle">Portal Pembelajaran Digital Terpadu</div>
-      <div class="fallback-box" id="fallback-box">
-        <a href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" target="_top" class="fallback-btn">
-          Buka Portal Secara Langsung
-        </a>
-      </div>
     </div>
   </div>
 
@@ -155,25 +135,19 @@
     (function () {
       var splash = document.getElementById('splash-screen');
       var iframe = document.getElementById('app-frame');
-      var fallbackBox = document.getElementById('fallback-box');
-      var isLoaded = false;
+      var isHidden = false;
 
       function hideSplash() {
-        if (isLoaded) return;
-        isLoaded = true;
-        setTimeout(function () {
-          splash.classList.add('hidden');
-        }, 400);
+        if (isHidden) return;
+        isHidden = true;
+        splash.classList.add('hidden');
       }
 
+      // Langsung buka tabir segera setelah iframe selesai dimuat
       iframe.addEventListener('load', hideSplash);
 
-      // Tampilkan tombol bantuan hanya jika koneksi sangat lambat (> 12 detik)
-      setTimeout(function () {
-        if (!isLoaded && fallbackBox) {
-          fallbackBox.style.display = 'block';
-        }
-      }, 12000);
+      // Batas maksimal splash screen 2,2 detik agar tidak terasa lama
+      setTimeout(hideSplash, 2200);
 
       // Registrasi Service Worker PWA
       if ('serviceWorker' in navigator) {
