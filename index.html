@@ -2,8 +2,9 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0284c7">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#e0f2fe">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="LMS SMAN 1 Pulau Tiga Barat">
@@ -16,21 +17,28 @@
   <meta property="og:image" content="logo.png">
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+  <link rel="dns-prefetch" href="https://www.gstatic.com">
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preload" as="image" href="logo.png" fetchpriority="high">
+  <link rel="preload" as="image" href="bg-sekolah.jpg" fetchpriority="high">
   <link rel="preload" as="document" href="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec">
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
     html, body {
       width: 100%;
       height: 100dvh;
       overflow: hidden;
       background-color: #f0f9ff;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       overscroll-behavior: none;
     }
     #splash-screen {
@@ -41,10 +49,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding-top: 8vh;
+      padding-top: calc(env(safe-area-inset-top, 0px) + clamp(36px, 7vh, 72px));
       background: linear-gradient(180deg, #e0f2fe 0%, #f8fafc 50%, #fef9c3 100%);
-      transition: opacity 0.25s ease, visibility 0.25s ease;
+      transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s ease;
+      will-change: opacity, visibility;
+      transform: translateZ(0);
       overflow: hidden;
+      user-select: none;
     }
     #splash-screen.hidden {
       opacity: 0;
@@ -57,10 +68,11 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 30%;
+      object-position: center 28%;
       opacity: 0.55;
       z-index: 1;
       pointer-events: none;
+      transform: translateZ(0);
     }
     .brand-card {
       position: relative;
@@ -74,31 +86,31 @@
       background: transparent;
       border: none;
       box-shadow: none;
-      max-width: 440px;
+      max-width: 480px;
       width: 92%;
     }
     .school-logo {
-      width: 96px;
-      height: 96px;
+      width: clamp(84px, 14vw, 108px);
+      height: clamp(84px, 14vw, 108px);
       object-fit: contain;
       margin-bottom: 10px;
-      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.9)) drop-shadow(0 2px 6px rgba(15, 23, 42, 0.25));
+      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.92)) drop-shadow(0 2px 6px rgba(15, 23, 42, 0.25));
     }
     .school-title {
-      font-size: 1.35rem;
+      font-size: clamp(1.2rem, 3.5vw, 1.55rem);
       font-weight: 800;
       color: #0f172a;
       letter-spacing: 0.3px;
       line-height: 1.25;
-      text-shadow: 0 1px 10px rgba(255, 255, 255, 0.95), 0 0 4px rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 10px rgba(255, 255, 255, 0.96), 0 0 4px rgba(255, 255, 255, 0.92);
     }
     .school-subtitle {
       margin-top: 4px;
-      font-size: 0.85rem;
+      font-size: clamp(0.8rem, 2.2vw, 0.95rem);
       font-weight: 700;
       color: #0369a1;
       letter-spacing: 0.4px;
-      text-shadow: 0 1px 8px rgba(255, 255, 255, 0.95), 0 0 4px rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 8px rgba(255, 255, 255, 0.96), 0 0 4px rgba(255, 255, 255, 0.92);
     }
     #app-frame {
       width: 100%;
@@ -106,6 +118,7 @@
       border: none;
       display: block;
       background-color: #ffffff;
+      transform: translateZ(0);
     }
   </style>
 </head>
@@ -113,11 +126,11 @@
 
   <div id="splash-screen">
     <!-- Foto Latar Belakang Kegiatan Sekolah Transparan -->
-    <img src="bg-sekolah.jpg" alt="Latar Belakang SMAN 1 Pulau Tiga Barat" class="photo-bg" onerror="this.style.display='none'">
+    <img src="bg-sekolah.jpg" alt="Latar Belakang SMAN 1 Pulau Tiga Barat" class="photo-bg" decoding="sync" fetchpriority="high" onerror="this.style.display='none'">
 
     <!-- Logo & Judul Sekolah Tanpa Kotak Putih -->
     <div class="brand-card">
-      <img src="logo.png" alt="Logo SMAN 1 Pulau Tiga Barat" class="school-logo" onerror="this.style.display='none'">
+      <img src="logo.png" alt="Logo SMAN 1 Pulau Tiga Barat" class="school-logo" decoding="sync" fetchpriority="high" onerror="this.style.display='none'">
       <div class="school-title">SMAN 1 Pulau Tiga Barat</div>
       <div class="school-subtitle">Portal Pembelajaran Digital Terpadu</div>
     </div>
