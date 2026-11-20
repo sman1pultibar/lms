@@ -11,14 +11,14 @@
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="manifest" href="manifest.json">
 
-  <!-- Mobile Standalone Meta Tags -->
+  <!-- Mobile App Standalone Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LMS SMAN 1 PTB">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
 
-  <!-- 1. TURBO PRECONNECT: Menghemat Latensi Koneksi ke Google Apps Script (Hemat 400ms - 1.2s) -->
+  <!-- 1. TURBO PRECONNECT & DNS-PREFETCH: Mempercepat Koneksi ke Server Google Apps Script (Hemat 400ms - 1.2s) -->
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.googleusercontent.com">
@@ -30,7 +30,7 @@
   <link rel="dns-prefetch" href="https://cdn.onesignal.com">
   <link rel="preconnect" href="https://cdn.onesignal.com" crossorigin>
 
-  <!-- 2. RESOURCE PRELOAD: Render Logo & Background Sekolah Instan (0 ms) -->
+  <!-- 2. HIGH PRIORITY RESOURCE PRELOADING (0 ms Render) -->
   <link rel="preload" as="image" href="logo.png" type="image/png">
   <link rel="preload" as="image" href="bg-sekolah.jpg" type="image/jpeg">
 
@@ -136,20 +136,26 @@
       }
     });
 
-    // Otomatis menutup Splash Screen ketika iframe LMS sudah siap dimuat
+    // Otomatis menutup Splash Screen secepat kilat (0.8 detik) agar fast-response instan
+    var splashDismissed = false;
     function dismissSplash() {
+      if (splashDismissed) return;
+      splashDismissed = true;
       var splash = document.getElementById("portalSplash");
-      if (splash && !splash.classList.contains("hidden")) {
+      if (splash) {
         splash.classList.add("hidden");
         setTimeout(function() {
           splash.style.display = "none";
-        }, 700);
+        }, 400);
       }
     }
 
-    // Safety timeout: jika koneksi lambat, splash otomatis beralih maksimal 7 detik
+    // Fast-Response: Splash screen hanya tampil sebagai greeting singkat (800ms)
+    // Tidak lagi menahan 7 detik yang membuat iPhone dan Median.co lambat
+    setTimeout(dismissSplash, 800);
+
     window.addEventListener("DOMContentLoaded", function() {
-      setTimeout(dismissSplash, 7000);
+      setTimeout(dismissSplash, 600);
 
       // Deteksi Jaringan Offline
       window.addEventListener("offline", function() {
@@ -161,6 +167,11 @@
         if (statusEl) statusEl.textContent = "Koneksi terhubung kembali...";
       });
     });
+
+    function reloadLMS() {
+      var frame = document.getElementById("lmsFrame");
+      if (frame) frame.src = frame.src;
+    }
   </script>
 
   <style>
@@ -209,7 +220,7 @@
       background: linear-gradient(135deg, rgba(7, 13, 30, 0.88) 0%, rgba(15, 23, 42, 0.94) 100%), url('bg-sekolah.jpg') center/cover no-repeat;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.65s;
+      transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.35s;
     }
 
     #portalSplash.hidden {
@@ -340,6 +351,7 @@
     id="lmsFrame" 
     src="https://script.google.com/macros/s/AKfycby3rxrQtwW78ySJnAuXwWti2IUjX4LC4v81OZqsahqMLQJBNoKG4AqzlaWf7tg-DfA/exec" 
     loading="eager"
+    fetchpriority="high"
     importance="high"
     allow="camera *; microphone *; geolocation *; autoplay; fullscreen *; display-capture *; clipboard-read *; clipboard-write *"
     allowfullscreen="true"
