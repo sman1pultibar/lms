@@ -69,23 +69,7 @@
           return;
         }
 
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-          try {
-            var permission = await OneSignal.Notifications.requestPermission();
-            var isGranted = (permission === true || permission === "granted" || Notification.permission === "granted");
-            
-            var frame = document.getElementById("lmsFrame");
-            if (frame && frame.contentWindow) {
-              frame.contentWindow.postMessage({
-                type: "ONESIGNAL_STATUS_IZIN",
-                granted: isGranted
-              }, "*");
-            }
-          } catch (eErr) {
-            console.error("Error meminta izin notifikasi di Vercel:", eErr);
-          }
-        });
+        bukaParentNotifModal();
       }
 
       // 2. Sinkronkan Akun Pengguna (Guru / Siswa & Kelas)
@@ -212,6 +196,164 @@
     function reloadLMS() {
       var frame = document.getElementById("lmsFrame");
       if (frame) frame.src = frame.src;
+    }
+
+    // =========================================================================
+    // MODAL PERIZINAN NOTIFIKASI RESMI (PARENT USER GESTURE BRIDGE)
+    // Mengatasi pemblokiran otomatis browser (User Gesture Requirement)
+    // =========================================================================
+    function bukaParentNotifModal() {
+      var modal = document.getElementById("parentNotifModal");
+      var titleEl = document.getElementById("parentNotifTitle");
+      var descEl = document.getElementById("parentNotifDesc");
+      var helpBox = document.getElementById("parentNotifHelpBox");
+      var btnAction = document.getElementById("btnParentEksekusiIzin");
+      var iconWrap = document.getElementById("parentNotifIcon");
+
+      if (!modal) return;
+
+      // 1. Cek jika sudah diizinkan (granted)
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        kirimStatusIzinKeIframe(true);
+        return;
+      }
+
+      // Reset tampilan
+      helpBox.style.display = "none";
+      btnAction.style.display = "block";
+      btnAction.disabled = false;
+      btnAction.onclick = eksekusiIzinParentGesture;
+      btnAction.innerHTML = "<span>Izinkan Sekarang</span>";
+
+      // 2. Cek jika diblokir di browser (denied)
+      if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+        iconWrap.style.background = "rgba(239, 68, 68, 0.15)";
+        iconWrap.style.borderColor = "rgba(239, 68, 68, 0.35)";
+        iconWrap.innerHTML = '<span style="font-size:30px;">⚠️</span>';
+        titleEl.textContent = "Izin Notifikasi Sedang Diblokir";
+        descEl.textContent = "Peramban HP Anda memblokir notifikasi untuk situs ini. Anda perlu membukanya secara manual di setelan peramban:";
+        helpBox.style.display = "block";
+        helpBox.style.background = "rgba(239, 68, 68, 0.12)";
+        helpBox.style.borderColor = "rgba(239, 68, 68, 0.3)";
+        helpBox.style.color = "#FECACA";
+        helpBox.innerHTML = "<strong>Cara Membuka Blokir:</strong><br>" +
+          "1. Ketuk ikon gembok 🔒 atau setelan di samping kiri alamat web.<br>" +
+          "2. Pilih <strong>Izin Situs / Permissions</strong> -> <strong>Notifikasi</strong>.<br>" +
+          "3. Ubah ke <strong>Izinkan / Allow</strong>.<br>" +
+          "4. Ketuk tombol 'Muat Ulang' di bawah.";
+        btnAction.innerHTML = "<span>Muat Ulang Halaman</span>";
+        btnAction.onclick = function() { location.reload(); };
+        modal.style.display = "flex";
+        return;
+      }
+
+      // 3. Cek apakah perangkat iPhone / iOS
+      var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      var isStandalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+      if (isIOS && !isStandalone) {
+        iconWrap.style.background = "rgba(14, 165, 233, 0.15)";
+        iconWrap.style.borderColor = "rgba(14, 165, 233, 0.35)";
+        iconWrap.innerHTML = '<span style="font-size:30px;">📱</span>';
+        titleEl.textContent = "Panduan Khusus iPhone (iOS)";
+        descEl.textContent = "Sistem Apple iOS mewajibkan Web App disimpan ke Layar Utama agar notifikasi HP dapat aktif:";
+        helpBox.style.display = "block";
+        helpBox.style.background = "rgba(14, 165, 233, 0.12)";
+        helpBox.style.borderColor = "rgba(14, 165, 233, 0.3)";
+        helpBox.style.color = "#BAE6FD";
+        helpBox.innerHTML = "<strong>Langkah Praktis (Safari):</strong><br>" +
+          "1. Ketuk tombol <strong>Bagikan / Share</strong> (ikon kotak panah ke atas ⬆️) di bagian bawah Safari.<br>" +
+          "2. Gulir ke bawah dan ketuk <strong>'Tambahkan ke Layar Utama' (Add to Home Screen)</strong>.<br>" +
+          "3. Buka aplikasi dari ikon di Layar Utama HP Anda.";
+        btnAction.innerHTML = "<span>Mengerti</span>";
+        btnAction.onclick = tutupParentNotifModal;
+        modal.style.display = "flex";
+        return;
+      }
+
+      // 4. Default: Tampilkan Ajakan Izinkan
+      iconWrap.style.background = "rgba(16, 185, 129, 0.15)";
+      iconWrap.style.borderColor = "rgba(16, 185, 129, 0.35)";
+      iconWrap.innerHTML = '<span style="font-size:30px;">🔔</span>';
+      titleEl.textContent = "Aktifkan Notifikasi Tugas di HP";
+      descEl.textContent = "Ketuk tombol 'Izinkan Sekarang' di bawah, lalu pilih 'Izinkan / Allow' pada dialog resmi peramban HP Anda.";
+      modal.style.display = "flex";
+    }
+
+    function tutupParentNotifModal(e) {
+      if (e && e.target && e.target !== e.currentTarget && e.target.classList.contains("parent-notif-card")) {
+        return;
+      }
+      var modal = document.getElementById("parentNotifModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    function eksekusiIzinParentGesture() {
+      var btn = document.getElementById("btnParentEksekusiIzin");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Membuka Izin...";
+      }
+
+      // Permintaan izin langsung yang dipicu klik pengguna (User Gesture resmi)
+      try {
+        if (window.OneSignal && window.OneSignal.Notifications && window.OneSignal.Notifications.requestPermission) {
+          window.OneSignal.Notifications.requestPermission().then(function(perm) {
+            var isGranted = (perm === true || perm === "granted" || (typeof Notification !== "undefined" && Notification.permission === "granted"));
+            prosesHasilIzin(isGranted);
+          }).catch(function() {
+            fallbackNativeParentRequest();
+          });
+          return;
+        }
+      } catch(eOne) {}
+
+      fallbackNativeParentRequest();
+    }
+
+    function fallbackNativeParentRequest() {
+      if (!("Notification" in window)) {
+        alert("Peramban ini tidak mendukung Web Push Notification.");
+        tutupParentNotifModal();
+        return;
+      }
+      try {
+        Notification.requestPermission().then(function(perm) {
+          prosesHasilIzin(perm === "granted");
+        }).catch(function() {
+          prosesHasilIzin(Notification.permission === "granted");
+        });
+      } catch(eOld) {
+        try {
+          Notification.requestPermission(function(perm) {
+            prosesHasilIzin(perm === "granted");
+          });
+        } catch(eFail) {
+          tutupParentNotifModal();
+        }
+      }
+    }
+
+    function prosesHasilIzin(isGranted) {
+      tutupParentNotifModal();
+      kirimStatusIzinKeIframe(isGranted);
+      if (isGranted) {
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+          try {
+            await OneSignal.User.PushSubscription.optIn();
+          } catch(eOpt) {}
+        });
+      }
+    }
+
+    function kirimStatusIzinKeIframe(isGranted) {
+      var frame = document.getElementById("lmsFrame");
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({
+          type: "ONESIGNAL_STATUS_IZIN",
+          granted: isGranted
+        }, "*");
+      }
     }
   </script>
 
