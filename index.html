@@ -51,6 +51,13 @@
     window.addEventListener("message", function(event) {
       if (!event.data) return;
 
+      // 0. Handshake Sinyal: Portal LMS Siap & Selesai Dilukis di Latar Belakang
+      if (event.data.type === "LMS_PORTAL_READY") {
+        portalReady = true;
+        dismissSplash();
+        return;
+      }
+
       // 1. Minta Izin Notifikasi dari Tombol di dalam LMS
       if (event.data.type === "ONESIGNAL_MINTA_IZIN") {
         if (window.median && window.median.onesignal && window.median.onesignal.register) {
@@ -136,27 +143,61 @@
       }
     });
 
-    // Otomatis menutup Splash Screen secepat kilat (0.8 detik) agar fast-response instan
+    // Pengendali Splash Screen Cerdas: Menunggu Portal Login Siap di Belakang Layar (Anti-Blank Putih)
     var splashDismissed = false;
+    var portalReady = false;
+    var splashMountTime = Date.now();
+    var MIN_SPLASH_TIME = 800; // Tampilkan minimal 800ms agar visual transisi halus
+
     function dismissSplash() {
       if (splashDismissed) return;
+      var elapsed = Date.now() - splashMountTime;
+      if (elapsed < MIN_SPLASH_TIME) {
+        setTimeout(dismissSplash, MIN_SPLASH_TIME - elapsed);
+        return;
+      }
       splashDismissed = true;
       var splash = document.getElementById("portalSplash");
       if (splash) {
         splash.classList.add("hidden");
         setTimeout(function() {
           splash.style.display = "none";
-        }, 400);
+        }, 450);
       }
     }
 
-    // Fast-Response: Splash screen hanya tampil sebagai greeting singkat (800ms)
-    // Tidak lagi menahan 7 detik yang membuat iPhone dan Median.co lambat
-    setTimeout(dismissSplash, 800);
+    // Dipanggil saat iframe selesai memuat berkas HTML dari Google Apps Script
+    function saatIframeSelesaiLoad() {
+      portalReady = true;
+      // Berikan jeda 200ms agar browser selesai melukis formulir login di belakang splash screen
+      setTimeout(function() {
+        dismissSplash();
+      }, 200);
+    }
+
+    // Indikator Progres Dinamis pada Splash Screen (Mencegah kesan blank/macet saat cold-start Apps Script)
+    var stepStatuses = [
+      { ms: 2200, text: "Menyiapkan Portal Akademik..." },
+      { ms: 5500, text: "Memuat Formulir Masuk LMS..." },
+      { ms: 9500, text: "Menyambungkan sistem, hampir siap..." }
+    ];
+    stepStatuses.forEach(function(s) {
+      setTimeout(function() {
+        if (!splashDismissed) {
+          var statusEl = document.getElementById("splashStatusText");
+          if (statusEl) statusEl.textContent = s.text;
+        }
+      }, s.ms);
+    });
+
+    // Batas Waktu Darurat (Fallback Timeout 18s) jika jaringan seluler luar biasa lambat
+    setTimeout(function() {
+      if (!splashDismissed) {
+        dismissSplash();
+      }
+    }, 18000);
 
     window.addEventListener("DOMContentLoaded", function() {
-      setTimeout(dismissSplash, 600);
-
       // Deteksi Jaringan Offline
       window.addEventListener("offline", function() {
         var statusEl = document.getElementById("splashStatusText");
@@ -203,6 +244,11 @@
       display: block;
       position: relative;
       z-index: 1;
+      background-color: #070D1E;
+      background-image: linear-gradient(135deg, rgba(7, 13, 30, 0.88), rgba(15, 23, 42, 0.92)), url('bg-sekolah.jpg');
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
     }
 
     /* Portal Splash Screen dengan Logo dan Background Sekolah */
@@ -355,7 +401,9 @@
     importance="high"
     allow="camera *; microphone *; geolocation *; autoplay; fullscreen *; display-capture *; clipboard-read *; clipboard-write *"
     allowfullscreen="true"
-    onload="dismissSplash()">
+    allowtransparency="true"
+    style="background-color:#070D1E;"
+    onload="saatIframeSelesaiLoad()">
   </iframe>
 
 </body>
