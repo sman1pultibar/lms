@@ -514,9 +514,141 @@
       font-weight: 500;
       letter-spacing: 0.2px;
     }
+
+    /* Modal Perizinan Notifikasi di Sisi Parent (User Gesture Bridge) */
+    .parent-notif-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7, 13, 30, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 16px;
+      animation: fadeInParentModal 0.25s ease-out;
+    }
+    @keyframes fadeInParentModal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .parent-notif-card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(16, 185, 129, 0.2);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 400px;
+      padding: 28px 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: scaleUpParentModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes scaleUpParentModal {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .parent-notif-icon-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .parent-notif-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .parent-notif-desc {
+      font-size: 13.5px;
+      color: #94A3B8;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .parent-notif-helpbox {
+      width: 100%;
+      text-align: left;
+      font-size: 12.5px;
+      line-height: 1.55;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      margin-bottom: 18px;
+    }
+    .parent-notif-buttons {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+    .btn-parent-batal {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #CBD5E1;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-parent-batal:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+    .btn-parent-izinkan {
+      flex: 1.4;
+      padding: 12px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #10B981, #059669);
+      border: none;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: transform 0.15s, filter 0.2s;
+    }
+    .btn-parent-izinkan:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    .btn-parent-izinkan:active {
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
+
+  <!-- MODAL PERIZINAN NOTIFIKASI RESMI DI SISI PARENT (USER GESTURE REQUIREMENT BRIDGE) -->
+  <div id="parentNotifModal" class="parent-notif-backdrop" onclick="tutupParentNotifModal(event)" style="display:none;">
+    <div class="parent-notif-card" onclick="event.stopPropagation()">
+      <div id="parentNotifIcon" class="parent-notif-icon-wrap">
+        <span style="font-size:30px;">🔔</span>
+      </div>
+      <h2 id="parentNotifTitle" class="parent-notif-title">Aktifkan Notifikasi Tugas di HP</h2>
+      <p id="parentNotifDesc" class="parent-notif-desc">
+        Ketuk tombol 'Izinkan Sekarang' di bawah, lalu pilih 'Izinkan / Allow' pada dialog resmi peramban HP Anda.
+      </p>
+      <div id="parentNotifHelpBox" class="parent-notif-helpbox" style="display:none;"></div>
+      <div class="parent-notif-buttons">
+        <button type="button" class="btn-parent-batal" onclick="tutupParentNotifModal()">Batal</button>
+        <button type="button" id="btnParentEksekusiIzin" class="btn-parent-izinkan" onclick="eksekusiIzinParentGesture()">Izinkan Sekarang</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Layar Portal Splash: Menampilkan Logo & Background Sekolah -->
   <div id="portalSplash">
@@ -541,7 +673,7 @@
     loading="eager"
     fetchpriority="high"
     importance="high"
-    allow="camera *; microphone *; geolocation *; autoplay; fullscreen *; display-capture *; clipboard-read *; clipboard-write *"
+    allow="camera *; microphone *; geolocation *; autoplay; fullscreen *; display-capture *; clipboard-read *; clipboard-write *; notifications *"
     allowfullscreen="true"
     allowtransparency="true"
     style="background-color:#070D1E;"
